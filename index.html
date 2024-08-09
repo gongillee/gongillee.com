@@ -1,32 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>이공일 李空一 Gong Il Lee</title>
     <meta name="description" content="이공일 李空一 Gong Il Lee">
     <meta name="keywords" content="이공일, 李空一, Gong Il Lee">
     <meta name="author" content="Gong Il Lee">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8">
+
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="favicon.ico">
-    <link rel="stylesheet" href="style.css">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="gallery.css">
 </head>
-
-<style>
-    body {
-        font-family: "Special Elite", system-ui;
-        font-weight: 400;
-        font-style: normal;
-        font-size: 20px;
-        line-height: 1.8em
-}
-</style>
-
 <body>
-    Work In Progress..<br>
-    - GONG IL LEE
+    <div class="gallery" id="photo-gallery">
+        <div class="responsive-container-block bigContainer">
+            <div class="responsive-container-block headerContainer">
+                <div class="row1">
+                    <h1 class="text-blk heading">이공일 (Gong Il Lee)</h1>
+                    <p class="text-blk subHeading">사진 모음집 (Photo collection)</p>
+                </div>
+            </div>
+            <div class="grid" id="gallery-container">
+                <!-- Images will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
+    <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+    <script src="gallery.js"></script>
 </body>
+</html>
