@@ -69,6 +69,25 @@ $(document).ready(function() {
         { src: "https://i.imgur.com/3JKX48j.jpg", alt: "me posing like a batman"},
         { src: "https://i.imgur.com/gu6FmCv.jpg", alt: "Golmok vinyl & pup enterance"},
         { src: "https://i.imgur.com/FMFaukB.jpg", alt: "me on the stairs"},
+        { src: "https://i.imgur.com/fJ6jPKK.jpg", alt: "an excavator in nature"},
+        { src: "https://i.imgur.com/lB3Py97.jpg", alt: "a lighthouse"},
+        { src: "https://i.imgur.com/4siLAbk.jpg", alt: "sunset in the city"},
+        { src: "https://i.imgur.com/W4foBhk.jpg", alt: "bright sea"},
+        { src: "https://i.imgur.com/Qcu62X0.jpg", alt: "gas station in the highway"},
+        { src: "https://i.imgur.com/DrQg6d4.jpg", alt: "grapheitti wall in berlin"},
+        { src: "https://i.imgur.com/O4JCTqG.jpg", alt: "grapheitti truck in berlin"},
+        { src: "https://i.imgur.com/9ms6Pft.jpg", alt: "house of silence"},
+        { src: "https://i.imgur.com/lPlVnTC.jpg", alt: "beautiful fine tree"},
+        { src: "https://i.imgur.com/BKTGHzQ.jpg", alt: "a wooden bench in forest"},
+        { src: "https://i.imgur.com/Rw11o9t.jpg", alt: "sunshine behind the tree"},
+        { src: "https://i.imgur.com/wrjBDvM.jpg", alt: "me in the forest at night"},
+        { src: "https://i.imgur.com/3U9cM8o.jpg", alt: "silent sea"},
+        { src: "https://i.imgur.com/G8lSlVv.jpg", alt: "way to the end"},
+        { src: "https://i.imgur.com/nbI717w.jpg", alt: "desert and trees"},
+        { src: "https://i.imgur.com/e6vEioI.jpg", alt: "strong trees"},
+        { src: "https://i.imgur.com/bXMwPX2.jpg", alt: "sun and trees"},
+        { src: "https://i.imgur.com/J5QwE2q.jpg", alt: "intangled trees"},
+
     ];
 
     // Shuffle images array
