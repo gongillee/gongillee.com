@@ -87,7 +87,7 @@ $(document).ready(function() {
         { src: "https://i.imgur.com/e6vEioI.jpg", alt: "strong trees"},
         { src: "https://i.imgur.com/bXMwPX2.jpg", alt: "sun and trees"},
         { src: "https://i.imgur.com/J5QwE2q.jpg", alt: "intangled trees"},
-
+        { src: "https://i.imgur.com/KrFdfpg.jpg", alt: "shine on you"},
     ];
 
     // Shuffle images array
