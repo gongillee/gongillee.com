@@ -1,0 +1,35 @@
+<!-- filepath: /Users/donghee/Documents/github/gongillee.com/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Welcome to Gong Il Lee's Portfolio</title>
+    <meta name="description" content="Welcome to the personal website of Gong Il Lee. Explore my work and gallery.">
+    <meta name="keywords" content="Gong Il Lee, portfolio, gallery, photography">
+    <meta name="author" content="Gong Il Lee">
+
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="home-container">
+        <h1 class="text-blk heading">Welcome to My Portfolio</h1>
+        <p class="text-blk subHeading">Hello! I'm Gong Il Lee, a passionate photographer and artist. Explore my work and feel free to reach out!</p>
+        <nav>
+            <ul class="menu">
+                <li><a href="gallery.html">View Gallery</a></li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>
