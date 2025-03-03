@@ -168,4 +168,64 @@ $(document).ready(function() {
             initMasonry();
         }, 250);
     });
+
+    // 메뉴 토글 기능 업데이트
+    $('.menu-toggle').on('click', function() {
+        $('.nav-links').toggleClass('active');
+        
+        // 토글 버튼 애니메이션 (햄버거 -> X)
+        $(this).toggleClass('active');
+        if ($(this).hasClass('active')) {
+            $(this).find('span:nth-child(1)').css({
+                'transform': 'rotate(45deg) translate(5px, 5px)'
+            });
+            $(this).find('span:nth-child(2)').css({
+                'opacity': '0'
+            });
+            $(this).find('span:nth-child(3)').css({
+                'transform': 'rotate(-45deg) translate(7px, -6px)'
+            });
+            
+            // 활성화된 메뉴 항목에 포커스 효과
+            setTimeout(function() {
+                $('.nav-links li').each(function(index) {
+                    $(this).css({
+                        'opacity': '1',
+                        'transform': 'translateX(0)'
+                    });
+                });
+            }, 100);
+        } else {
+            $(this).find('span').css({
+                'transform': 'none',
+                'opacity': '1'
+            });
+            
+            // 메뉴 닫을 때 항목 초기화
+            $('.nav-links li').css({
+                'opacity': '0',
+                'transform': 'translateX(40px)'
+            });
+        }
+    });
+    
+    // 메뉴 항목 클릭시 메뉴 닫기
+    $('.nav-links a').on('click', function() {
+        $('.nav-links').removeClass('active');
+        $('.menu-toggle').removeClass('active').find('span').css({
+            'transform': 'none',
+            'opacity': '1'
+        });
+    });
+    
+    // 화면 밖 클릭시 메뉴 닫기
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.nav-container').length) {
+            $('.nav-links').removeClass('active');
+            $('.menu-toggle').removeClass('active').find('span').css({
+                'transform': 'none',
+                'opacity': '1'
+            });
+        }
+    });
 });

@@ -17,6 +17,7 @@ body {
     z-index: 100;
 }
 
+/* 네비게이션 컨테이너 상대적 위치 설정 */
 .nav-container {
     display: flex;
     justify-content: space-between;
@@ -24,6 +25,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 15px 20px;
+    position: relative; /* 추가: 상대적 위치 지정 */
 }
 
 .logo {
@@ -31,26 +33,123 @@ body {
     font-weight: 400;
 }
 
+/* 네비게이션 메뉴 스타일 수정 */
+/* 네비게이션 메뉴 위치 수정 */
 .nav-links {
-    display: flex;
-    list-style: none;
-    margin: 0;
+    display: none;
+    position: absolute;
+    top: 100%; /* 수정: 컨테이너 바로 아래로 위치 조정 */
+    right: 20px; /* 수정: 오른쪽 여백 조정 */
+    width: 200px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-left: 1px solid #eaeaea;
+    border-bottom: 1px solid #eaeaea;
+    border-right: 1px solid #eaeaea; /* 추가: 오른쪽 테두리 */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     padding: 0;
+    overflow: hidden;
+    transform-origin: top right;
+    z-index: 100; /* 추가: z-index 지정 */
+}
+
+.nav-links.active {
+    display: block;
+    animation: slideIn 0.3s ease forwards;
 }
 
 .nav-links li {
-    margin-left: 30px;
+    margin: 0;
+    transform: translateX(40px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-links.active li {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.nav-links.active li:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.nav-links.active li:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.nav-links.active li:nth-child(3) {
+    transition-delay: 0.3s;
 }
 
 .nav-links a {
     text-decoration: none;
     color: #333;
-    font-weight: 400;
-    font-size: 15px;
+    font-weight: 300;
+    font-size: 18px;
+    display: block;
+    padding: 18px 25px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.nav-links a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 0;
+    height: 1px;
+    background-color: #333;
+    transition: width 0.3s ease;
+    transform: translateY(-50%);
+}
+
+.nav-links a:hover {
+    padding-left: 35px;
+}
+
+.nav-links a:hover::before {
+    width: 15px;
 }
 
 .nav-links a.active {
-    text-decoration: underline;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.nav-links a.active::before {
+    width: 15px;
+}
+
+/* 새로운 애니메이션 */
+@keyframes slideIn {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+/* 메뉴 토글 버튼 스타일 */
+/* 메뉴 토글 버튼 위치 조정 */
+.menu-toggle {
+    display: block;
+    cursor: pointer;
+    padding: 5px;
+    z-index: 101;
+    position: relative; /* 추가: 상대적 위치 지정 */
+}
+
+.menu-toggle span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px 0;
+    background-color: #333;
+    transition: all 0.3s ease;
 }
 
 /* 홈페이지 스타일 */
@@ -286,6 +385,11 @@ footer {
     
     .featured-grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    .nav-links {
+        width: 100%;
+        left: 0;
     }
 }
 
