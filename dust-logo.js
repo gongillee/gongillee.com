@@ -56,7 +56,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // 텍스트를 캔버스에 그려서 픽셀 데이터 추출 (위치 조정됨)
         ctx.fillStyle = window.getComputedStyle(textElement).color;
         ctx.textBaseline = 'top';
-        ctx.fillText(originalText, offsetX + 1.1, offsetY + 5.6);
+
+        // 화면 크기에 따른 반응형 오프셋 조정
+        let xOffset = 1.1;
+        let yOffset = 5.6;
+
+        // 모바일 화면에서는 다른 오프셋 적용
+        if (window.innerWidth <= 768) {
+            xOffset = 0.4;
+            yOffset = 4.7; // 모바일에서 약간 위로 조정
+        }
+
+        // 더 작은 화면에서 추가 조정
+        if (window.innerWidth <= 480) {
+            xOffset = 0.4;
+            yOffset = 5.0;
+        }
+
+        ctx.fillText(originalText, offsetX + xOffset, offsetY + yOffset);
         
         // 캔버스에서 픽셀 데이터 추출
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
