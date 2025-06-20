@@ -1,0 +1,133 @@
+.gallery {
+    font-family: "Gothic A1", sans-serif;
+    font-style: normal;
+}
+
+.responsive-container-block {
+    padding: 1px;
+}
+
+.text-blk.heading {
+    width: 100%;
+    text-align: center;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.text-blk.subHeading {
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.grid {
+    margin: 0 auto;
+}
+
+.grid-item {
+    width: calc(33.333% - 10px);
+    margin-bottom: 0px; /* 사진 위아래 간격. 원래 10이었음 */
+    position: relative;
+    overflow: hidden;
+}
+
+.grid-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s ease;
+}
+
+.grid-item:hover img {
+    transform: scale(1.1);
+}
+
+.btn-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.grid-item:hover .btn-box {
+    opacity: 1;
+}
+
+/* Lightbox styles */
+.lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.lightbox-img {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .grid-item {
+        width: calc(50% - 10px);
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-item {
+        width: calc(100% - 10px);
+    }
+}
+
+
+/* logo */
+.logo {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 400;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    min-width: 250px; /* 최소 너비 설정 */
+    overflow: visible; /* 오버플로우 제한 해제 */
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .logo {
+        font-size: 16px; /* 작은 화면에서 글자 크기 축소 */
+        min-width: 220px; /* 작은 화면에서의 최소 너비 */
+    }
+}
+
+/* 모바일 화면에서의 로고 스타일 조정 */
+@media (max-width: 480px) {
+    .logo {
+        font-size: 14px; /* 더 작은 화면에서 글자 크기 추가 축소 */
+        min-width: 200px;
+    }
+}
