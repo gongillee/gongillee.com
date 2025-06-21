@@ -4,8 +4,7 @@ $(document).ready(function() {
     for (let i = 1; i <= 100; i++) {
         const paddedNumber = i.toString().padStart(5, '0');
         images.push({
-            src: `images/image${paddedNumber}.JPG`,
-            alt: `Project ${i}`
+            src: `images/image${paddedNumber}.jpg`
         });
     }
 
