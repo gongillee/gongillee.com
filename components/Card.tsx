@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { GridItem } from '../types';
 import { LayoutParams } from '../hooks/useResponsiveLayout';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 interface CardProps {
   item: GridItem;
@@ -58,8 +59,16 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
     ? "relative w-full h-full overflow-hidden rounded-lg shadow-2xl transform transition-all duration-300 group-hover:scale-[1.03]"
     : "relative w-full h-full overflow-hidden bg-neutral-900 rounded-lg shadow-2xl transform transition-all duration-300 group-hover:scale-[1.03] border border-white/5 group-hover:border-white/20";
 
+  // Lazy Loading Logic
+  // We use a margin to start loading slightly before it enters the viewport
+  const { ref, isVisible } = useIntersectionObserver({
+    rootMargin: '200px',
+    freezeOnceVisible: false // We want to unload videos when they go out of view to save memory
+  });
+
   return (
     <div
+      ref={ref}
       className="group absolute cursor-pointer select-none"
       style={style}
       onClick={(e) => {
@@ -72,16 +81,23 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
         {/* Media Container */}
         <div className="w-full h-full overflow-hidden relative bg-black">
           {item.mediaType === 'video' ? (
-            <video
-              src={item.imageUrl}
-              className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
-              autoPlay
-              muted
-              loop
-              playsInline
-              controlsList="nodownload"
-              onContextMenu={(e) => e.preventDefault()}
-            />
+            isVisible ? (
+              <video
+                src={item.imageUrl}
+                className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
+              />
+            ) : (
+              // Placeholder for video when not visible
+              <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                <span className="text-white/20 text-xs">LOADING</span>
+              </div>
+            )
           ) : item.mediaType === 'audio' ? (
             <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-900 group-hover:bg-neutral-800 transition-colors">
               <div className="flex items-end gap-1 h-12 mb-4">
@@ -98,18 +114,21 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
                 ))}
               </div>
               <span className="text-xs font-mono text-white/50 tracking-widest">AUDIO</span>
-              <audio
-                src={item.imageUrl}
-                controls
-                controlsList="nodownload"
-                className="absolute bottom-4 left-4 right-4 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity"
-                onContextMenu={(e) => e.preventDefault()}
-              />
+              {isVisible && (
+                <audio
+                  src={item.imageUrl}
+                  controls
+                  controlsList="nodownload"
+                  className="absolute bottom-4 left-4 right-4 w-[calc(100%-2rem)] opacity-0 group-hover:opacity-100 transition-opacity"
+                  onContextMenu={(e) => e.preventDefault()}
+                />
+              )}
             </div>
           ) : (
             <img
               src={item.imageUrl}
               alt={item.title}
+              loading="lazy"
               className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
