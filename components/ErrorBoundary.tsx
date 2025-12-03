@@ -1,4 +1,3 @@
-```typescript
 import React, { ErrorInfo, ReactNode } from 'react';
 
 interface Props {
@@ -46,4 +45,4 @@ class ErrorBoundary extends React.Component<Props, State> {
 }
 
 export default ErrorBoundary;
-```
+// Force update
