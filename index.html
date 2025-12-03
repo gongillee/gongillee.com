@@ -18,45 +18,20 @@
       -webkit-touch-callout: none;
     }
 
-    #error-display {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      color: red;
-      padding: 20px;
-      z-index: 9999;
+    /* Hide scrollbar */
+    ::-webkit-scrollbar {
       display: none;
-      white-space: pre-wrap;
-      font-family: monospace;
+    }
+
+    .no-select {
+      user-select: none;
+      -webkit-user-select: none;
     }
   </style>
-  <script>
-    window.onerror = function (msg, url, line, col, error) {
-      var display = document.getElementById('error-display');
-      if (display) {
-        display.style.display = 'block';
-        display.innerText += "Error: " + msg + "\nAt: " + url + ":" + line + ":" + col + "\n" + (error ? error.stack : "") + "\n\n";
-      }
-      return false;
-    };
-    window.addEventListener('unhandledrejection', function (event) {
-      var display = document.getElementById('error-display');
-      if (display) {
-        display.style.display = 'block';
-        display.innerText += "Unhandled Rejection: " + event.reason + "\n\n";
-      }
-    });
-  </script>
 </head>
 
 <body>
-  <div id="error-display"></div>
-  <div id="root">
-    <div style="color: white; text-align: center; padding-top: 50px;">Loading application...</div>
-  </div>
+  <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
 
