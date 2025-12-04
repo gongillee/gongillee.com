@@ -124,5 +124,5 @@ export const PROJECTS_DATA: Omit<Project, 'id' | 'imageUrl'>[] = [
     { title: "constant value seoul", client: "seoul, south korea", year: "2016", type: "#8", description: "", mediaType: 'video', src: 'constantvalue8.mp4' },
 
     // Audio
-    { title: "Silent Echo", client: "Sony", year: "2023", type: "Campaign", description: "Visualizing sound waves in a silent room.", mediaType: 'audio', src: 'segment_of_a_circle.mp3' },
+    { title: "Segment of a Circle", client: "Scøpe, Xanexx, Ve Bogel", year: "2024", type: "Campaign", description: "Visualizing sound waves in a silent room.", mediaType: 'audio', src: 'segment_of_a_circle.mp3' },
 ];
