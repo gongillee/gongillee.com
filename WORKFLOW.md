@@ -20,7 +20,15 @@ npm run optimize-media
 ```
 *This will automatically process your videos so they play instantly on the web.* -->
 
-## 2. Update Data
+## 3. Generate Previews (Optional)
+If you want to use lightweight previews for the Grid/List views:
+
+```bash
+./preview_media.sh
+```
+*This creates 5-second, muted, low-quality clips (e.g., `video_preview.mp4`) for smoother browsing.*
+
+## 4. Update Data
 Open `projects.ts` and add a new entry to the `PROJECTS_DATA` array.
 
 **Example:**

@@ -46,7 +46,7 @@ const ListItem: React.FC<ListItemProps> = ({ item, theme, onItemClick }) => {
                 {item.mediaType === 'video' ? (
                     <video
                         ref={videoRef}
-                        src={item.imageUrl}
+                        src={item.previewUrl ?? item.imageUrl}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         muted
                         loop

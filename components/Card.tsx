@@ -97,7 +97,7 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
           {item.mediaType === 'video' ? (
             <video
               ref={videoRef}
-              src={item.imageUrl}
+              src={item.previewUrl ?? item.imageUrl}
               className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
               muted
               loop

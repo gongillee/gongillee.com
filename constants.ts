@@ -120,15 +120,21 @@ export const generateGridItems = (rows: number, cols: number, shuffle: boolean =
       poolIndex++;
 
       let url = '';
+      let previewUrl = '';
       // Use helper with src if available
       url = getMediaUrl(selectedData.mediaType, poolIndex, selectedData.src);
+
+      if (selectedData.previewSrc) {
+        previewUrl = getMediaUrl(selectedData.mediaType, poolIndex, selectedData.previewSrc);
+      }
 
       items.push({
         ...selectedData,
         id: `card-${items.length}`, // Use items.length for unique ID sequence
         row: r,
         col: c,
-        imageUrl: url
+        imageUrl: url,
+        previewUrl: previewUrl || undefined
       });
     }
   }

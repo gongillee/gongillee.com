@@ -8,9 +8,11 @@ export interface Project {
   description: string;
   mediaType: 'image' | 'video' | 'audio';
   src?: string;
+  previewSrc?: string;
 }
 
 export interface GridItem extends Project {
   row: number;
   col: number;
+  previewUrl?: string;
 }
