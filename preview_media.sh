@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Directory containing videos
-VIDEO_DIR="assets/videos"
+# Directory to save previews
+PREVIEW_DIR="assets/videos/previews"
+PROJECTS_FILE="projects.ts"
+
+# Create preview directory if it doesn't exist
+mkdir -p "$PREVIEW_DIR"
 
 # Check if ffmpeg is installed
 if ! command -v ffmpeg &> /dev/null; then
@@ -9,46 +13,59 @@ if ! command -v ffmpeg &> /dev/null; then
     exit 1
 fi
 
-echo "Generating video previews..."
+echo "Scanning $PROJECTS_FILE for video URLs..."
 
-# Loop through all mp4 files in the directory
-for file in "$VIDEO_DIR"/*.mp4; do
-    # Check if file exists (in case of no matches)
-    [ -e "$file" ] || continue
+# Extract URLs from projects.ts
+# 1. grep: Find lines with 'https://...mp4'
+# 2. grep -o: Extract just the URL part
+# 3. grep -v: Exclude existing preview URLs (containing _preview)
+# 4. sort -u: Remove duplicates
+URLS=$(grep -o "https://[^']*\.mp4" "$PROJECTS_FILE" | grep -v "_preview" | sort -u)
 
-    # Get filename without extension
-    filename=$(basename -- "$file")
-    extension="${filename##*.}"
-    filename="${filename%.*}"
+if [ -z "$URLS" ]; then
+    echo "No video URLs found in $PROJECTS_FILE."
+    exit 0
+fi
 
-    # Skip if it's already a preview file
-    if [[ "$filename" == *"_preview"* ]]; then
-        continue
-    fi
+echo "Found the following videos:"
+echo "$URLS"
+echo "-----------------------------------"
 
-    # Define preview filename
-    preview_file="$VIDEO_DIR/${filename}_preview.mp4"
+# Loop through each URL
+for url in $URLS; do
+    # Extract filename from URL (e.g., constantvalue8.mp4)
+    filename=$(basename "$url")
+    
+    # Remove extension (e.g., constantvalue8)
+    name="${filename%.*}"
+    
+    # Define output path
+    output_file="$PREVIEW_DIR/${name}_preview.mp4"
 
     # Check if preview already exists
-    if [ -f "$preview_file" ]; then
-        echo "Preview already exists for $file. Skipping."
+    if [ -f "$output_file" ]; then
+        echo "[SKIP] Preview already exists: $output_file"
         continue
     fi
 
-    echo "Processing $file -> $preview_file"
+    echo "[PROCESSING] $filename"
+    echo "  Source: $url"
+    echo "  Target: $output_file"
 
-    # Generate 5-second preview
-    # -t 5: Duration 5 seconds
-    # -vf scale=640:-2: Resize width to 640px (maintain aspect ratio)
+    # Generate preview
+    # -t 30: Duration 30 seconds (User requested)
+    # -vf scale=320:-2: Resize width to 320px
     # -an: Remove audio
     # -crf 28: High compression
-    ffmpeg -i "$file" -t 5 -vf "scale=640:-2" -c:v libx264 -crf 28 -preset slow -an -movflags +faststart "$preview_file"
+    # -movflags +faststart: Web optimization
+    ffmpeg -i "$url" -t 30 -vf "scale=320:-2" -c:v libx264 -crf 28 -preset slow -an -movflags +faststart "$output_file" < /dev/null
 
     if [ $? -eq 0 ]; then
-        echo "Successfully created $preview_file"
+        echo "  [SUCCESS] Created $output_file"
     else
-        echo "Failed to create preview for $file"
+        echo "  [FAILED] Could not create preview for $url"
     fi
+    echo "-----------------------------------"
 done
 
-echo "Preview generation complete!"
+echo "All done! Previews are saved in $PREVIEW_DIR"

@@ -11,7 +11,7 @@ import { PROJECTS_DATA } from './projects';
 export { PROJECTS_DATA };
 
 // Dynamic Media Imports
-const videoModules = import.meta.glob('./assets/videos/*.{mp4,webm,mov}', { eager: true, query: '?url', import: 'default' });
+const videoModules = import.meta.glob('./assets/videos/**/*.{mp4,webm,mov}', { eager: true, query: '?url', import: 'default' });
 const audioModules = import.meta.glob('./assets/audio/*.{mp3,wav,ogg}', { eager: true, query: '?url', import: 'default' });
 
 const VIDEO_URLS = Object.values(videoModules) as string[];
