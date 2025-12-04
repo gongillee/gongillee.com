@@ -11,6 +11,7 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
   const [visible, setVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Swipe Logic State
   const touchStart = useRef<number | null>(null);
@@ -20,6 +21,7 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
   useEffect(() => {
     if (item) {
       setVisible(true);
+      setIsLoading(true);
     } else {
       setTimeout(() => setVisible(false), 300); // Wait for exit animation
     }
@@ -145,15 +147,28 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
           {item && (
             <>
               {item.mediaType === 'video' ? (
-                <video
-                  src={item.imageUrl}
-                  className="max-w-full max-h-full object-contain"
-                  controls
-                  autoPlay
-                  loop
-                  controlsList="nodownload"
-                  onContextMenu={(e) => e.preventDefault()}
-                />
+                <>
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                      <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                  <video
+                    src={item.imageUrl}
+                    className="max-w-full max-h-full object-contain"
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="auto"
+                    loop
+                    controlsList="nodownload"
+                    onContextMenu={(e) => e.preventDefault()}
+                    onLoadStart={() => setIsLoading(true)}
+                    onWaiting={() => setIsLoading(true)}
+                    onCanPlay={() => setIsLoading(false)}
+                    onPlaying={() => setIsLoading(false)}
+                  />
+                </>
               ) : item.mediaType === 'audio' ? (
                 <div className="flex flex-col items-center justify-center w-full h-full">
                   <div className="flex items-end gap-2 h-32 mb-8">
