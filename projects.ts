@@ -123,7 +123,7 @@ export const PROJECTS_DATA: Omit<Project, 'id' | 'imageUrl'>[] = [
 
 
     // Videos (Reduced to match likely file count to avoid duplicates in list view)
-    { title: "constant value seoul", client: "#8", year: "2016", type: "seoul, south korea", description: "", mediaType: 'video', src: 'constantvalue8.mp4' },
+    { title: "constant value seoul", client: "#8", year: "2016", type: "seoul, south korea", description: "", mediaType: 'video', src: 'https://gongillee.b-cdn.net/constantvalue8.mp4' },
 
     // Audio
     { title: "segment of a circle", client: "scøpe, xanexx, ve bogel", year: "2024", type: "seoul, south korea", description: "Visualizing sound waves in a silent room.", mediaType: 'audio', src: 'segment_of_a_circle.mp3' },

@@ -34,7 +34,7 @@ const HUD: React.FC<HUDProps> = ({
           gong il lee
         </h1>
         <p className="text-xs font-mono opacity-60 mix-blend-difference">
-          infinite canvas
+          a.k.a. 012
         </p>
       </div>
 
@@ -60,7 +60,7 @@ const HUD: React.FC<HUDProps> = ({
             onClick={onViewModeChange}
             className={`px-4 py-2 rounded-full backdrop-blur-md ${bgColor} text-xs font-mono hover:bg-white/20 transition-all border ${borderColor}`}
           >
-            {viewMode === 'grid' ? 'LIST VIEW' : '3D VIEW'}
+            {viewMode === 'grid' ? 'LIST VIEW' : 'GRID VIEW'}
           </button>
           <button
             onClick={onFilterChange}

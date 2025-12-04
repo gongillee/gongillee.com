@@ -22,6 +22,10 @@ export const getMediaUrl = (mediaType: 'image' | 'video' | 'audio', index: numbe
     if (mediaType === 'image') {
       return `/images/${filename}`;
     } else if (mediaType === 'video') {
+      // If it's an external URL, return it directly
+      if (filename.startsWith('http')) {
+        return filename;
+      }
       // Find the module that ends with the filename or contains the basename (for hashed files)
       const basename = filename.substring(0, filename.lastIndexOf('.'));
       const found = VIDEO_URLS.find(url => url.includes(filename) || (basename && url.includes(basename)));

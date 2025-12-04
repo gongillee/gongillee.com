@@ -82,7 +82,7 @@ const App: React.FC = () => {
 
   // Render Loop for inertia
   const animate = useCallback(() => {
-    if (view !== 'archive' || viewMode === 'list') return; // Stop animation if not in 3D view
+    if (view !== 'archive' || viewMode === 'list') return; // Stop animation if not in Grid view
 
     if (!isDragging.current) {
       // Apply inertia

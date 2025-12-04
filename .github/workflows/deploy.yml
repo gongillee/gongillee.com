@@ -15,14 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          lfs: false
+          lfs: true
 
       - name: Checkout LFS objects
-        run: |
-          git lfs install
-          git lfs pull
-          ls -lh assets/videos/
+        run: git lfs pull
 
       - name: Install Node.js
         uses: actions/setup-node@v4

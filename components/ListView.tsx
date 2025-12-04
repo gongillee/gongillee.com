@@ -59,7 +59,7 @@ const ListItem: React.FC<ListItemProps> = ({ item, theme, onItemClick }) => {
                             // But now we have auto-play when visible.
                             // Let's keep hover behavior as an "extra" but the base is visibility.
                             // Actually, if we auto-play when visible, hover play is redundant or conflicting.
-                            // Let's stick to visibility-based auto-play for consistency with 3D view.
+                            // Let's stick to visibility-based auto-play for consistency with Grid view.
                         }}
                     />
                 ) : item.mediaType === 'audio' ? (
