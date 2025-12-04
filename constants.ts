@@ -1,10 +1,10 @@
 import { Project } from './types';
 
 export const CARD_WIDTH = 320;
-export const CARD_HEIGHT = 420;
+export const CARD_HEIGHT = 320;
 export const GAP_X = 40;
 export const GAP_Y = 40;
-export const RADIUS = 1400; // Radius of the cylinder
+export const RADIUS = 1375; // Radius of the cylinder
 export const ANGLE_STEP = 14; // Degrees per column
 
 import { PROJECTS_DATA } from './projects';

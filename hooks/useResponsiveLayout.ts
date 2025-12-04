@@ -31,19 +31,19 @@ export const useResponsiveLayout = () => {
                 // Mobile
                 newLayout = {
                     cardWidth: 200,
-                    cardHeight: 280,
+                    cardHeight: 200,
                     gapY: 20,
-                    radius: 800,
+                    radius: 700,
                     rowCount: 6,
                     colCount: 20, // Adjust col count for mobile radius
                 };
             } else if (width < 1024) {
                 // Tablet
                 newLayout = {
-                    cardWidth: 220,
-                    cardHeight: 320,
-                    gapY: 25,
-                    radius: 900,
+                    cardWidth: 250,
+                    cardHeight: 250,
+                    gapY: 30,
+                    radius: 1070,
                     rowCount: 6,
                     colCount: 24,
                 };

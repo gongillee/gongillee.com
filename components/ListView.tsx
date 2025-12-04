@@ -21,8 +21,20 @@ const ListItem: React.FC<ListItemProps> = ({ item, theme, onItemClick }) => {
 
     const { ref, isVisible } = useIntersectionObserver({
         rootMargin: '100px',
-        freezeOnceVisible: true // Keep list items visible once loaded to avoid flickering during fast scroll
+        freezeOnceVisible: false
     });
+
+    const videoRef = React.useRef<HTMLVideoElement>(null);
+
+    React.useEffect(() => {
+        if (item.mediaType === 'video' && videoRef.current) {
+            if (isVisible) {
+                videoRef.current.play().catch(() => { });
+            } else {
+                videoRef.current.pause();
+            }
+        }
+    }, [isVisible, item.mediaType]);
 
     return (
         <div
@@ -31,32 +43,37 @@ const ListItem: React.FC<ListItemProps> = ({ item, theme, onItemClick }) => {
             className={`flex items-center gap-6 p-4 border-b ${borderColor} ${hoverBg} transition-colors cursor-pointer group`}
         >
             <div className="w-24 h-16 md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-md bg-gray-800 flex items-center justify-center">
-                {isVisible ? (
-                    item.mediaType === 'video' ? (
-                        <video
-                            src={item.imageUrl}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            muted
-                            loop
-                            onMouseOver={e => e.currentTarget.play()}
-                            onMouseOut={e => e.currentTarget.pause()}
-                        />
-                    ) : item.mediaType === 'audio' ? (
-                        <div className="flex gap-1 items-end h-8">
-                            {[...Array(3)].map((_, i) => (
-                                <div key={i} className="w-1 bg-white/50 animate-pulse h-full" style={{ animationDelay: `${i * 0.15}s` }} />
-                            ))}
-                        </div>
-                    ) : (
-                        <img
-                            src={item.imageUrl}
-                            alt={item.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                    )
+                {item.mediaType === 'video' ? (
+                    <video
+                        ref={videoRef}
+                        src={item.imageUrl}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        onMouseOver={e => e.currentTarget.play()}
+                        onMouseOut={e => {
+                            // Only pause if not visible (handled by effect) or if we want hover-only behavior?
+                            // The original code had hover behavior.
+                            // But now we have auto-play when visible.
+                            // Let's keep hover behavior as an "extra" but the base is visibility.
+                            // Actually, if we auto-play when visible, hover play is redundant or conflicting.
+                            // Let's stick to visibility-based auto-play for consistency with 3D view.
+                        }}
+                    />
+                ) : item.mediaType === 'audio' ? (
+                    <div className="flex gap-1 items-end h-8">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="w-1 bg-white/50 animate-pulse h-full" style={{ animationDelay: `${i * 0.15}s` }} />
+                        ))}
+                    </div>
                 ) : (
-                    <div className="w-full h-full bg-gray-800 animate-pulse" />
+                    <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                 )}
             </div>
             <div className="flex-1 min-w-0">

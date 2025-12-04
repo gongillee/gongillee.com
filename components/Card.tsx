@@ -63,8 +63,22 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
   // We use a margin to start loading slightly before it enters the viewport
   const { ref, isVisible } = useIntersectionObserver({
     rootMargin: '200px',
-    freezeOnceVisible: false // We want to unload videos when they go out of view to save memory
+    freezeOnceVisible: false
   });
+
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  React.useEffect(() => {
+    if (item.mediaType === 'video' && videoRef.current) {
+      if (isVisible) {
+        videoRef.current.play().catch(() => {
+          // Autoplay might be blocked or failed
+        });
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isVisible, item.mediaType]);
 
   return (
     <div
@@ -81,23 +95,17 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
         {/* Media Container */}
         <div className="w-full h-full overflow-hidden relative bg-black">
           {item.mediaType === 'video' ? (
-            isVisible ? (
-              <video
-                src={item.imageUrl}
-                className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
-                autoPlay
-                muted
-                loop
-                playsInline
-                controlsList="nodownload"
-                onContextMenu={(e) => e.preventDefault()}
-              />
-            ) : (
-              // Placeholder for video when not visible
-              <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
-                <span className="text-white/20 text-xs">LOADING</span>
-              </div>
-            )
+            <video
+              ref={videoRef}
+              src={item.imageUrl}
+              className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              controlsList="nodownload"
+              onContextMenu={(e) => e.preventDefault()}
+            />
           ) : item.mediaType === 'audio' ? (
             <div className="w-full h-full flex flex-col items-center justify-center bg-neutral-900 group-hover:bg-neutral-800 transition-colors">
               <div className="flex items-end gap-1 h-12 mb-4">
@@ -128,7 +136,6 @@ const Card: React.FC<CardProps> = memo(({ item, layout, scrollY, onClick, theme 
             <img
               src={item.imageUrl}
               alt={item.title}
-              loading="lazy"
               className="w-full h-full object-cover grayscale transition-all duration-700 ease-in-out group-hover:grayscale-0 group-hover:scale-110"
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
