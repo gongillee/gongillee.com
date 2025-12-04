@@ -1,14 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Project } from '../types';
-import { X, ArrowRight, Share2 } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ModalProps {
   item: Project | null;
   onClose: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
+const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
   const [visible, setVisible] = useState(false);
+
+  // Swipe Logic State
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     if (item) {
@@ -17,6 +24,76 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
       setTimeout(() => setVisible(false), 300); // Wait for exit animation
     }
   }, [item]);
+
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!item) return;
+      if (e.key === 'ArrowLeft' && onPrev) onPrev();
+      if (e.key === 'ArrowRight' && onNext) onNext();
+      if (e.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [item, onNext, onPrev, onClose]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEnd.current = null;
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && onNext) {
+      onNext();
+    }
+    if (isRightSwipe && onPrev) {
+      onPrev();
+    }
+  };
+
+  // Mouse Drag Logic (for Desktop Swipe)
+  const onMouseDown = (e: React.MouseEvent) => {
+    touchEnd.current = null;
+    touchStart.current = e.clientX;
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (touchStart.current !== null) {
+      touchEnd.current = e.clientX;
+    }
+  };
+
+  const onMouseUp = () => {
+    if (touchStart.current === null || touchEnd.current === null) {
+      touchStart.current = null;
+      touchEnd.current = null;
+      return;
+    }
+    const distance = touchStart.current - touchEnd.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && onNext) {
+      onNext();
+    }
+    if (isRightSwipe && onPrev) {
+      onPrev();
+    }
+
+    // Reset
+    touchStart.current = null;
+    touchEnd.current = null;
+  };
 
   if (!item && !visible) return null;
 
@@ -28,6 +105,13 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
       <div
         className={`relative w-full h-full md:w-[90%] md:h-[90%] bg-neutral-900 md:rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${item ? 'translate-y-0 scale-100' : 'translate-y-20 scale-95'}`}
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
       >
         {/* Close Button */}
         <button
@@ -36,6 +120,25 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
         >
           <X size={24} />
         </button>
+
+        {/* Navigation Buttons (Unified & Bottom Positioned) */}
+        {onPrev && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPrev(); }}
+            className="absolute left-6 bottom-8 z-50 p-3 bg-black/30 text-white/70 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all backdrop-blur-md"
+          >
+            <ChevronLeft size={32} />
+          </button>
+        )}
+
+        {onNext && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onNext(); }}
+            className="absolute right-6 bottom-8 z-50 p-3 bg-black/30 text-white/70 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all backdrop-blur-md"
+          >
+            <ChevronRight size={32} />
+          </button>
+        )}
 
         {/* Image Section */}
         <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
@@ -87,8 +190,6 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
           )}
         </div>
       </div>
-
-
     </div>
   );
 };

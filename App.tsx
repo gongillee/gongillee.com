@@ -194,6 +194,22 @@ const App: React.FC = () => {
     setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
   };
 
+  const handleNext = useCallback(() => {
+    if (!selectedItem || viewMode !== 'list') return;
+    const currentIndex = listItems.findIndex(item => item.id === selectedItem.id);
+    if (currentIndex === -1) return;
+    const nextIndex = (currentIndex + 1) % listItems.length;
+    setSelectedItem(listItems[nextIndex]);
+  }, [selectedItem, listItems, viewMode]);
+
+  const handlePrev = useCallback(() => {
+    if (!selectedItem || viewMode !== 'list') return;
+    const currentIndex = listItems.findIndex(item => item.id === selectedItem.id);
+    if (currentIndex === -1) return;
+    const prevIndex = (currentIndex - 1 + listItems.length) % listItems.length;
+    setSelectedItem(listItems[prevIndex]);
+  }, [selectedItem, listItems, viewMode]);
+
   return (
     <div className={`relative w-full h-screen overflow-hidden touch-none select-none transition-colors duration-500 ${theme === 'day' ? 'bg-white' : 'bg-black'}`}>
 
@@ -251,6 +267,8 @@ const App: React.FC = () => {
           <Modal
             item={selectedItem}
             onClose={() => setSelectedItem(null)}
+            onNext={viewMode === 'list' ? handleNext : undefined}
+            onPrev={viewMode === 'list' ? handlePrev : undefined}
           />
         </>
       )}
