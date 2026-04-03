@@ -290,7 +290,25 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
           ctx.arc(screenX, screenY, previewSize / 2, 0, Math.PI * 2);
           ctx.closePath();
           ctx.clip();
-          ctx.drawImage(dot.img, screenX - previewSize / 2, screenY - previewSize / 2, previewSize, previewSize);
+          // Cover-crop: maintain aspect ratio, center crop into circle
+          const imgW = dot.img.naturalWidth;
+          const imgH = dot.img.naturalHeight;
+          const imgAspect = imgW / imgH;
+          let sx0: number, sy0: number, sw: number, sh: number;
+          if (imgAspect > 1) {
+            // Landscape: crop sides
+            sh = imgH;
+            sw = imgH;
+            sx0 = (imgW - sw) / 2;
+            sy0 = 0;
+          } else {
+            // Portrait or square: crop top/bottom
+            sw = imgW;
+            sh = imgW;
+            sx0 = 0;
+            sy0 = (imgH - sh) / 2;
+          }
+          ctx.drawImage(dot.img, sx0, sy0, sw, sh, screenX - previewSize / 2, screenY - previewSize / 2, previewSize, previewSize);
           ctx.restore();
           // Border ring
           ctx.strokeStyle = theme === 'day' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
