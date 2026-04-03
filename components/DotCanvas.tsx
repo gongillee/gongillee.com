@@ -48,8 +48,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
 
   const MIN_ZOOM = 0.5;
   const MAX_ZOOM = 3;
-  const PREVIEW_SIZE_DESKTOP = 80;
-  const PREVIEW_SIZE_MOBILE = 100;
+  const BASE_REPEL_RADIUS = 80;
 
   const initDots = useCallback(() => {
     const canvas = canvasRef.current;
@@ -189,8 +188,6 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
 
     const FRICTION = 0.92;
     const EASE = 0.08;
-    const MOUSE_RADIUS = 80;
-    const MOUSE_RADIUS_SQ = MOUSE_RADIUS * MOUSE_RADIUS;
 
     let currentHovered: DotData | null = null;
 
@@ -211,6 +208,8 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       scrollRef.current.y += (scrollRef.current.targetY - scrollRef.current.y) * 0.1;
 
       const zoom = zoomRef.current;
+      const MOUSE_RADIUS = BASE_REPEL_RADIUS * zoom;
+      const MOUSE_RADIUS_SQ = MOUSE_RADIUS * MOUSE_RADIUS;
       const sx = scrollRef.current.x;
       const sy = scrollRef.current.y;
       const mx = mouseRef.current.x;
@@ -285,8 +284,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
 
         // Draw as image thumbnail if loaded, otherwise as circle
         if (isHovered && dot.imgLoaded && dot.img) {
-          const isMob = canvas.width < 768;
-          const previewSize = (isMob ? PREVIEW_SIZE_MOBILE : PREVIEW_SIZE_DESKTOP) * zoom;
+          const previewSize = MOUSE_RADIUS * 2 * 0.9; // 90% of repel diameter
           ctx.save();
           ctx.beginPath();
           ctx.arc(screenX, screenY, previewSize / 2, 0, Math.PI * 2);
@@ -381,14 +379,14 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       const sx = scrollRef.current.x;
       const sy = scrollRef.current.y;
       const zoom = zoomRef.current;
+      const repelR = BASE_REPEL_RADIUS * zoom;
+      const previewR = repelR * 0.9; // matches render: 90% of repel radius
       const cvs = canvasRef.current;
       if (!cvs) return false;
       const cxc = cvs.width / 2;
       const cyc = cvs.height / 2;
       const screenX = (dot.originX + sx) * zoom + cxc * (1 - zoom);
       const screenY = (dot.originY + sy) * zoom + cyc * (1 - zoom);
-      const isMob = cvs.width < 768;
-      const previewR = ((isMob ? PREVIEW_SIZE_MOBILE : PREVIEW_SIZE_DESKTOP) * zoom) / 2;
       const dx = px - screenX;
       const dy = py - screenY;
       return (dx * dx + dy * dy) <= previewR * previewR;
