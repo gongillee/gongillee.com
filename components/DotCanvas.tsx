@@ -38,10 +38,18 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
   const tappedDot = useRef<DotData | null>(null); // Mobile: pinned preview dot
   const maxScrollRef = useRef({ x: 0, y: 0 });
   const animFrameRef = useRef<number>(0);
+  const zoomRef = useRef(1); // Zoom level
+  const pinchStartDist = useRef(0); // For pinch-to-zoom
+  const pinchStartZoom = useRef(1);
 
   // Track actual drag distance to distinguish click from drag
   const totalDragDist = useRef(0);
   const isTouchDevice = useRef(false);
+
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 3;
+  const PREVIEW_SIZE_DESKTOP = 80;
+  const PREVIEW_SIZE_MOBILE = 100;
 
   const initDots = useCallback(() => {
     const canvas = canvasRef.current;
@@ -202,10 +210,13 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       scrollRef.current.x += (scrollRef.current.targetX - scrollRef.current.x) * 0.1;
       scrollRef.current.y += (scrollRef.current.targetY - scrollRef.current.y) * 0.1;
 
+      const zoom = zoomRef.current;
       const sx = scrollRef.current.x;
       const sy = scrollRef.current.y;
       const mx = mouseRef.current.x;
       const my = mouseRef.current.y;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
 
       let closestDot: DotData | null = null;
       let closestDistSq = Infinity;
@@ -213,15 +224,17 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       const dots = dotsRef.current;
 
       // First pass: find the closest dot to mouse (based on origin position)
+      const hitRadius = 30 / zoom; // Adjust hit area for zoom
+      const hitRadiusSq = hitRadius * hitRadius;
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i];
-        const screenX = dot.originX + sx;
-        const screenY = dot.originY + sy;
-        if (screenX < -20 || screenX > canvas.width + 20 || screenY < -20 || screenY > canvas.height + 20) continue;
+        const screenX = (dot.originX + sx) * zoom + cx * (1 - zoom);
+        const screenY = (dot.originY + sy) * zoom + cy * (1 - zoom);
+        if (screenX < -50 || screenX > canvas.width + 50 || screenY < -50 || screenY > canvas.height + 50) continue;
         const dx = mx - screenX;
         const dy = my - screenY;
         const distSq = dx * dx + dy * dy;
-        if (distSq < closestDistSq && distSq < 30 * 30) {
+        if (distSq < closestDistSq && distSq < 40 * 40) {
           closestDistSq = distSq;
           closestDot = dot;
         }
@@ -231,12 +244,12 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       for (let i = 0; i < dots.length; i++) {
         const dot = dots[i];
 
-        // Screen position
-        const screenX = dot.x + sx;
-        const screenY = dot.y + sy;
+        // Screen position with zoom
+        const screenX = (dot.x + sx) * zoom + cx * (1 - zoom);
+        const screenY = (dot.y + sy) * zoom + cy * (1 - zoom);
 
         // Culling: skip if off-screen
-        if (screenX < -20 || screenX > canvas.width + 20 || screenY < -20 || screenY > canvas.height + 20) {
+        if (screenX < -50 || screenX > canvas.width + 50 || screenY < -50 || screenY > canvas.height + 50) {
           continue;
         }
 
@@ -268,11 +281,12 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
 
         // Draw dot
         const isHovered = dot === closestDot || dot === pinnedDot;
-        const size = isHovered ? dot.size * 1.8 : dot.size;
+        const baseSize = (isHovered ? dot.size * 1.8 : dot.size) * zoom;
 
         // Draw as image thumbnail if loaded, otherwise as circle
         if (isHovered && dot.imgLoaded && dot.img) {
-          const previewSize = 40;
+          const isMob = canvas.width < 768;
+          const previewSize = (isMob ? PREVIEW_SIZE_MOBILE : PREVIEW_SIZE_DESKTOP) * zoom;
           ctx.save();
           ctx.beginPath();
           ctx.arc(screenX, screenY, previewSize / 2, 0, Math.PI * 2);
@@ -280,10 +294,16 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
           ctx.clip();
           ctx.drawImage(dot.img, screenX - previewSize / 2, screenY - previewSize / 2, previewSize, previewSize);
           ctx.restore();
+          // Border ring
+          ctx.strokeStyle = theme === 'day' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.3)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(screenX, screenY, previewSize / 2, 0, Math.PI * 2);
+          ctx.stroke();
         } else {
           ctx.fillStyle = isHovered ? dotHoverColor : dotColor;
           ctx.beginPath();
-          ctx.arc(screenX, screenY, size / 2, 0, Math.PI * 2);
+          ctx.arc(screenX, screenY, baseSize / 2, 0, Math.PI * 2);
           ctx.fill();
         }
       }
@@ -350,8 +370,8 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
         const dx = e.clientX - lastPos.current.x;
         const dy = e.clientY - lastPos.current.y;
         totalDragDist.current += Math.abs(dx) + Math.abs(dy);
-        scrollRef.current.targetX += dx;
-        scrollRef.current.targetY += dy;
+        scrollRef.current.targetX += dx / zoomRef.current;
+        scrollRef.current.targetY += dy / zoomRef.current;
         lastPos.current = { x: e.clientX, y: e.clientY };
       }
     };
@@ -374,21 +394,33 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       canvas.style.cursor = 'default';
     };
 
+    // Wheel zoom (desktop)
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.001;
+      zoomRef.current = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomRef.current + delta));
+    };
+
     // Touch support — two-step interaction:
     // 1st tap: show preview on dot
     // 2nd tap on same dot: open modal
     // Tap on different dot: switch preview
     // Drag: scroll (dismiss preview)
-    const findClosestDotAtPoint = (cx: number, cy: number): DotData | null => {
+    const findClosestDotAtPoint = (px: number, py: number): DotData | null => {
       const sx = scrollRef.current.x;
       const sy = scrollRef.current.y;
+      const zoom = zoomRef.current;
+      const cvs = canvasRef.current;
+      if (!cvs) return null;
+      const cxc = cvs.width / 2;
+      const cyc = cvs.height / 2;
       let closest: DotData | null = null;
-      let closestDistSq = 30 * 30; // max distance threshold
+      let closestDistSq = 40 * 40; // threshold in screen pixels
       for (const dot of dotsRef.current) {
-        const screenX = dot.originX + sx;
-        const screenY = dot.originY + sy;
-        const dx = cx - screenX;
-        const dy = cy - screenY;
+        const screenX = (dot.originX + sx) * zoom + cxc * (1 - zoom);
+        const screenY = (dot.originY + sy) * zoom + cyc * (1 - zoom);
+        const dx = px - screenX;
+        const dy = py - screenY;
         const distSq = dx * dx + dy * dy;
         if (distSq < closestDistSq) {
           closestDistSq = distSq;
@@ -410,20 +442,36 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
 
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
-      const touch = e.touches[0];
 
+      // Pinch-to-zoom with two fingers
+      if (e.touches.length === 2) {
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+        if (pinchStartDist.current > 0) {
+          const scale = dist / pinchStartDist.current;
+          zoomRef.current = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinchStartZoom.current * scale));
+        } else {
+          pinchStartDist.current = dist;
+          pinchStartZoom.current = zoomRef.current;
+        }
+        return;
+      }
+
+      const touch = e.touches[0];
       if (isDragging.current) {
         const dx = touch.clientX - lastPos.current.x;
         const dy = touch.clientY - lastPos.current.y;
         totalDragDist.current += Math.abs(dx) + Math.abs(dy);
-        scrollRef.current.targetX += dx;
-        scrollRef.current.targetY += dy;
+        scrollRef.current.targetX += dx / zoomRef.current;
+        scrollRef.current.targetY += dy / zoomRef.current;
         lastPos.current = { x: touch.clientX, y: touch.clientY };
       }
     };
 
     const handleTouchEnd = () => {
       isDragging.current = false;
+      pinchStartDist.current = 0;
 
       if (totalDragDist.current < 10) {
         // It was a tap, not a drag
@@ -454,6 +502,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd);
@@ -463,6 +512,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('wheel', handleWheel);
       canvas.removeEventListener('touchstart', handleTouchStart);
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
