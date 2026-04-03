@@ -240,10 +240,14 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
           continue;
         }
 
-        // Mouse interaction: repel dots, but NOT the closest (hovered) dot
-        if (dot !== closestDot) {
-          const dx = mx - screenX;
-          const dy = my - screenY;
+        // Mouse/touch interaction: repel dots, but NOT the hovered/pinned dot
+        const activeDot = pinnedDot || closestDot;
+        if (dot !== activeDot) {
+          // Use mouse position for desktop, pinned dot origin for mobile
+          const repelX = pinnedDot ? (pinnedDot.originX + sx) : mx;
+          const repelY = pinnedDot ? (pinnedDot.originY + sy) : my;
+          const dx = repelX - screenX;
+          const dy = repelY - screenY;
           const distSq = dx * dx + dy * dy;
 
           if (distSq < MOUSE_RADIUS_SQ && distSq > 0) {
