@@ -330,6 +330,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
     if (!canvas) return;
 
     const handleMouseDown = (e: MouseEvent) => {
+      if (isTouchDevice.current) return;
       isDragging.current = true;
       totalDragDist.current = 0;
       dragStart.current = { x: e.clientX, y: e.clientY };
@@ -338,6 +339,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (isTouchDevice.current) return;
       mouseRef.current = { x: e.clientX, y: e.clientY };
 
       if (isDragging.current) {
@@ -351,6 +353,7 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
     };
 
     const handleMouseUp = (e: MouseEvent) => {
+      if (isTouchDevice.current) return;
       isDragging.current = false;
       canvas.style.cursor = 'default';
 
@@ -392,13 +395,13 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault(); // Prevent synthetic mouse events
       isTouchDevice.current = true;
       const touch = e.touches[0];
       isDragging.current = true;
       totalDragDist.current = 0;
       dragStart.current = { x: touch.clientX, y: touch.clientY };
       lastPos.current = { x: touch.clientX, y: touch.clientY };
-      // Don't set mouseRef here — no repel effect on touch start
     };
 
     const handleTouchMove = (e: TouchEvent) => {
