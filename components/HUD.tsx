@@ -34,7 +34,7 @@ const HUD: React.FC<HUDProps> = ({
           gong il lee
         </h1>
         <p className="text-xs font-mono opacity-60 mix-blend-difference">
-          a.k.a. 012
+          012
         </p>
       </div>
 
