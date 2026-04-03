@@ -376,15 +376,34 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
       }
     };
 
+    // Check if a point is inside the preview circle of a given dot
+    const isInsidePreview = (px: number, py: number, dot: DotData): boolean => {
+      const sx = scrollRef.current.x;
+      const sy = scrollRef.current.y;
+      const zoom = zoomRef.current;
+      const cvs = canvasRef.current;
+      if (!cvs) return false;
+      const cxc = cvs.width / 2;
+      const cyc = cvs.height / 2;
+      const screenX = (dot.originX + sx) * zoom + cxc * (1 - zoom);
+      const screenY = (dot.originY + sy) * zoom + cyc * (1 - zoom);
+      const isMob = cvs.width < 768;
+      const previewR = ((isMob ? PREVIEW_SIZE_MOBILE : PREVIEW_SIZE_DESKTOP) * zoom) / 2;
+      const dx = px - screenX;
+      const dy = py - screenY;
+      return (dx * dx + dy * dy) <= previewR * previewR;
+    };
+
     const handleMouseUp = (e: MouseEvent) => {
       if (isTouchDevice.current) return;
       isDragging.current = false;
       canvas.style.cursor = 'default';
 
-      // Click (not drag) → open image
-      if (totalDragDist.current < 10 && hoveredDot.current) {
-        const dot = hoveredDot.current;
-        onDotClick(dot.imageUrl, dot.mediaType);
+      // Click (not drag) on preview circle → open image
+      if (totalDragDist.current < 10 && hoveredDot.current && hoveredDot.current.imgLoaded) {
+        if (isInsidePreview(e.clientX, e.clientY, hoveredDot.current)) {
+          onDotClick(hoveredDot.current.imageUrl, hoveredDot.current.mediaType);
+        }
       }
     };
 
@@ -477,17 +496,19 @@ const DotCanvas: React.FC<DotCanvasProps> = ({ theme, onDotClick }) => {
         // It was a tap, not a drag
         const tapX = dragStart.current.x;
         const tapY = dragStart.current.y;
-        const tappedOnDot = findClosestDotAtPoint(tapX, tapY);
 
+        // If there's already a pinned preview, check if we tapped on it
+        if (tappedDot.current && tappedDot.current.imgLoaded && isInsidePreview(tapX, tapY, tappedDot.current)) {
+          // Tapped on the preview circle → open modal
+          onDotClick(tappedDot.current.imageUrl, tappedDot.current.mediaType);
+          tappedDot.current = null;
+          return;
+        }
+
+        // Otherwise, find closest dot for new preview
+        const tappedOnDot = findClosestDotAtPoint(tapX, tapY);
         if (tappedOnDot) {
-          if (tappedDot.current === tappedOnDot) {
-            // Second tap on same dot → open modal
-            onDotClick(tappedOnDot.imageUrl, tappedOnDot.mediaType);
-            tappedDot.current = null;
-          } else {
-            // First tap or different dot → show preview
-            tappedDot.current = tappedOnDot;
-          }
+          tappedDot.current = tappedOnDot;
         } else {
           // Tapped on empty area → dismiss preview
           tappedDot.current = null;
