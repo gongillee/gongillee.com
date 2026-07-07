@@ -27,10 +27,7 @@ const buildModalItem = (projectIdx: number): ModalItem => {
 };
 
 const App: React.FC = () => {
-  // Mobile lands on the index — the canvas is a desktop-first surface
-  const [view, setView] = useState<View>(() =>
-    typeof window !== 'undefined' && window.innerWidth < 768 ? 'index' : 'canvas'
-  );
+  const [view, setView] = useState<View>('canvas');
   // Modal state: an ordered list of project indices + the current position in it
   const [modal, setModal] = useState<{ list: number[]; pos: number } | null>(null);
 
