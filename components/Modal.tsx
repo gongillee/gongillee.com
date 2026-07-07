@@ -1,15 +1,24 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Project } from '../types';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+
+export interface ModalItem {
+  no: string;
+  year: string;
+  location: string;
+  title: string;
+  mediumLabel: string;
+  mediaType: 'image' | 'video' | 'audio';
+  url: string;
+}
 
 interface ModalProps {
-  item: Project | null;
+  item: ModalItem | null;
+  position?: { current: number; total: number };
   onClose: () => void;
   onNext?: () => void;
   onPrev?: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
+const Modal: React.FC<ModalProps> = ({ item, position, onClose, onNext, onPrev }) => {
   const [visible, setVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,12 +27,19 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
   const touchEnd = useRef<number | null>(null);
   const minSwipeDistance = 50;
 
+  // Stable pseudo-waveform for the audio view
+  const bars = useMemo(
+    () => Array.from({ length: 24 }, (_, i) => 25 + Math.abs(Math.sin((i + 1) * 2.7)) * 75),
+    [item?.url]
+  );
+
   useEffect(() => {
     if (item) {
       setVisible(true);
       setIsLoading(true);
     } else {
-      setTimeout(() => setVisible(false), 300); // Wait for exit animation
+      const t = setTimeout(() => setVisible(false), 500); // Match exit transition
+      return () => clearTimeout(t);
     }
   }, [item]);
 
@@ -52,110 +68,50 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
   const onTouchEnd = () => {
     if (!touchStart.current || !touchEnd.current) return;
     const distance = touchStart.current - touchEnd.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && onNext) {
-      onNext();
-    }
-    if (isRightSwipe && onPrev) {
-      onPrev();
-    }
-  };
-
-  // Mouse Drag Logic (for Desktop Swipe)
-  const onMouseDown = (e: React.MouseEvent) => {
-    touchEnd.current = null;
-    touchStart.current = e.clientX;
-  };
-
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (touchStart.current !== null) {
-      touchEnd.current = e.clientX;
-    }
-  };
-
-  const onMouseUp = () => {
-    if (touchStart.current === null || touchEnd.current === null) {
-      touchStart.current = null;
-      touchEnd.current = null;
-      return;
-    }
-    const distance = touchStart.current - touchEnd.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && onNext) {
-      onNext();
-    }
-    if (isRightSwipe && onPrev) {
-      onPrev();
-    }
-
-    // Reset
-    touchStart.current = null;
-    touchEnd.current = null;
+    if (distance > minSwipeDistance && onNext) onNext();
+    if (distance < -minSwipeDistance && onPrev) onPrev();
   };
 
   if (!item && !visible) return null;
 
+  const caption = item
+    ? `no.${item.no} · ${item.year} · ${item.location}${item.title ? ` — ${item.title}` : ''} · ${item.mediumLabel}`
+    : '';
+
+  const navBtn = `font-mono text-[11px] tracking-[0.08em] px-2 py-1 transition-opacity opacity-70 hover:opacity-100 disabled:opacity-25`;
+
   return (
     <div
-      className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ease-in-out ${item ? 'bg-black/80 backdrop-blur-xl opacity-100 pointer-events-auto' : 'bg-black/0 backdrop-blur-none opacity-0 pointer-events-none'}`}
+      className={`fixed inset-0 z-[100] flex items-center justify-center transition-all duration-500 ease-in-out ${
+        item
+          ? 'bg-paper/90 backdrop-blur-md opacity-100 pointer-events-auto'
+          : 'bg-transparent backdrop-blur-none opacity-0 pointer-events-none'
+      }`}
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-full md:w-[90%] md:h-[90%] bg-neutral-900 md:rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) ${item ? 'translate-y-0 scale-100' : 'translate-y-20 scale-95'}`}
+        className={`relative flex h-full w-full flex-col overflow-hidden border border-ink bg-paper text-ink transition-transform duration-500 md:h-[90%] md:w-[90%] ${
+          item ? 'translate-y-0 scale-100' : 'translate-y-10 scale-[0.98]'
+        }`}
         onClick={(e) => e.stopPropagation()}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 z-50 p-2 bg-black/50 text-white rounded-full hover:bg-white hover:text-black transition-colors backdrop-blur-md"
-        >
-          <X size={24} />
-        </button>
-
-        {/* Navigation Buttons (Unified & Bottom Positioned) */}
-        {onPrev && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onPrev(); }}
-            className="absolute left-6 bottom-8 z-50 p-3 bg-black/30 text-white/70 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all backdrop-blur-md"
-          >
-            <ChevronLeft size={32} />
-          </button>
-        )}
-
-        {onNext && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onNext(); }}
-            className="absolute right-6 bottom-8 z-50 p-3 bg-black/30 text-white/70 rounded-full hover:bg-white hover:text-black hover:scale-110 transition-all backdrop-blur-md"
-          >
-            <ChevronRight size={32} />
-          </button>
-        )}
-
-        {/* Image Section */}
-        <div className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center">
+        {/* Stage */}
+        <div className="relative flex min-h-0 flex-1 items-center justify-center p-4 md:p-8">
           {item && (
             <>
               {item.mediaType === 'video' ? (
                 <>
                   {isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                      <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink border-t-transparent"></div>
                     </div>
                   )}
                   <video
-                    src={item.imageUrl}
-                    className="max-w-full max-h-full object-contain"
+                    src={item.url}
+                    className="max-h-full max-w-full object-contain"
                     controls
                     autoPlay
                     playsInline
@@ -170,22 +126,18 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
                   />
                 </>
               ) : item.mediaType === 'audio' ? (
-                <div className="flex flex-col items-center justify-center w-full h-full">
-                  <div className="flex items-end gap-2 h-32 mb-8">
-                    {[...Array(8)].map((_, i) => (
+                <div className="flex w-full flex-col items-center justify-center gap-10 px-6">
+                  <div className="flex h-28 items-end gap-[6px]">
+                    {bars.map((h, i) => (
                       <div
                         key={i}
-                        className="w-4 bg-white animate-pulse"
-                        style={{
-                          height: `${Math.random() * 100}%`,
-                          animationDelay: `${i * 0.1}s`,
-                          animationDuration: '0.8s'
-                        }}
+                        className="w-[3px] animate-pulse bg-ink"
+                        style={{ height: `${h}%`, animationDelay: `${i * 0.08}s`, animationDuration: '1.1s' }}
                       />
                     ))}
                   </div>
                   <audio
-                    src={item.imageUrl}
+                    src={item.url}
                     controls
                     controlsList="nodownload"
                     className="w-full max-w-md"
@@ -194,15 +146,45 @@ const Modal: React.FC<ModalProps> = ({ item, onClose, onNext, onPrev }) => {
                 </div>
               ) : (
                 <img
-                  src={item.imageUrl}
-                  alt={item.title}
-                  className="max-w-full max-h-full object-contain"
+                  src={item.url}
+                  alt={caption}
+                  className="max-h-full max-w-full border border-ink object-contain"
                   onContextMenu={(e) => e.preventDefault()}
                   draggable={false}
                 />
               )}
             </>
           )}
+        </div>
+
+        {/* Caption strip */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-ink px-4 py-3">
+          <span className="min-w-0 truncate font-mono text-[11px] tracking-[0.06em]">
+            {caption}
+          </span>
+          <span className="flex items-center gap-2 whitespace-nowrap">
+            {position && (
+              <span className="font-mono text-[11px] text-muted">
+                {String(position.current).padStart(3, '0')} / {String(position.total).padStart(3, '0')}
+              </span>
+            )}
+            {onPrev && (
+              <button className={navBtn} onClick={(e) => { e.stopPropagation(); onPrev(); }}>
+                ← prev
+              </button>
+            )}
+            {onNext && (
+              <button className={navBtn} onClick={(e) => { e.stopPropagation(); onNext(); }}>
+                next →
+              </button>
+            )}
+            <button
+              className={`${navBtn} border border-dotted border-ink`}
+              onClick={onClose}
+            >
+              esc ×
+            </button>
+          </span>
         </div>
       </div>
     </div>

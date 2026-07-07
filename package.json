@@ -9,16 +9,21 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "optimize-media": "./optimize_media.sh"
+    "optimize-media": "./optimize_media.sh",
+    "thumbs": "./generate_thumbs.sh",
+    "add": "node scripts/add-media.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "lucide-react": "^0.555.0"
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.3.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

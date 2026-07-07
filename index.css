@@ -1,15 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* paper & ink — day */
+  --color-paper: #f9f8f5;
+  --color-ink: #2b2a27;
+  --color-muted: #8a877e;
+  --color-line: #ddd9cf;
+  --color-accent: #0000d2;
+
+  --font-sans: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
 
 body {
   margin: 0;
   overflow: hidden;
-  background-color: #050505;
-  font-family: 'Inter', sans-serif;
-  color: white;
+  background-color: var(--color-paper);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
   overscroll-behavior: none;
   -webkit-touch-callout: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Hide scrollbar */
@@ -17,7 +28,33 @@ body {
   display: none;
 }
 
-.no-select {
-  user-select: none;
-  -webkit-user-select: none;
+/* Bottom ticker — two copies of the same span translate in lockstep */
+.marquee-track {
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.marquee-track>span {
+  display: inline-block;
+  animation: marquee-scroll 80s linear infinite;
+}
+
+.marquee-track:hover>span {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track>span {
+    animation: none;
+  }
 }

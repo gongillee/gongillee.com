@@ -1,10 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Modal from './components/Modal';
-import DotCanvas from './components/DotCanvas';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Modal, { ModalItem } from './components/Modal';
+import StippleCanvas from './components/StippleCanvas';
+import IndexView from './components/IndexView';
+import Marquee from './components/Marquee';
+import { PROJECTS_DATA, getMediaUrl } from './constants';
+
+type View = 'canvas' | 'index';
+
+const MEDIUM_LABEL: Record<string, string> = {
+  image: '사진',
+  video: '영상',
+  audio: '음악',
+};
+
+const buildModalItem = (projectIdx: number): ModalItem => {
+  const p = PROJECTS_DATA[projectIdx];
+  return {
+    no: String(projectIdx + 1).padStart(3, '0'),
+    year: p.year,
+    location: p.type,
+    title: p.mediaType === 'image' ? '' : p.title,
+    mediumLabel: MEDIUM_LABEL[p.mediaType],
+    mediaType: p.mediaType,
+    url: getMediaUrl(p.mediaType, projectIdx, p.src),
+  };
+};
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'day' | 'night'>('night');
-  const [selectedImage, setSelectedImage] = useState<{ imageUrl: string; mediaType: 'image' | 'video' | 'audio' } | null>(null);
+  // Mobile lands on the index — the canvas is a desktop-first surface
+  const [view, setView] = useState<View>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'index' : 'canvas'
+  );
+  // Modal state: an ordered list of project indices + the current position in it
+  const [modal, setModal] = useState<{ list: number[]; pos: number } | null>(null);
 
   // Global Content Protection
   useEffect(() => {
@@ -17,78 +45,79 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleDotClick = useCallback((imageUrl: string, mediaType: 'image' | 'video' | 'audio') => {
-    setSelectedImage({ imageUrl, mediaType });
+  const allIndices = useMemo(() => PROJECTS_DATA.map((_, i) => i), []);
+
+  const handleDotClick = useCallback((projectIdx: number) => {
+    setModal({ list: allIndices, pos: projectIdx });
+  }, [allIndices]);
+
+  const handleIndexOpen = useCallback((list: number[], pos: number) => {
+    setModal({ list, pos });
   }, []);
 
-  const handleThemeToggle = () => {
-    setTheme(prev => prev === 'day' ? 'night' : 'day');
-  };
+  const modalItem = modal ? buildModalItem(modal.list[modal.pos]) : null;
 
-  // Build a minimal Project-like item for Modal
-  const modalItem = selectedImage ? {
-    id: 'dot-preview',
-    title: '',
-    client: '',
-    year: '',
-    type: '',
-    imageUrl: selectedImage.imageUrl,
-    description: '',
-    mediaType: selectedImage.mediaType,
-  } : null;
+  const handlePrev = modal && modal.pos > 0
+    ? () => setModal(m => m && { ...m, pos: m.pos - 1 })
+    : undefined;
+  const handleNext = modal && modal.pos < modal.list.length - 1
+    ? () => setModal(m => m && { ...m, pos: m.pos + 1 })
+    : undefined;
+
+  const pillBase = 'font-mono text-[11px] tracking-[0.08em] px-3 py-1 transition-colors';
+  const pillOn = 'border border-solid border-ink bg-ink text-paper';
+  const pillOff = 'border border-dotted border-ink opacity-70 hover:opacity-100';
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden touch-none select-none transition-colors duration-500 ${theme === 'day' ? 'bg-white' : 'bg-black'}`}>
+    <div
+      className={`relative w-full h-screen overflow-hidden select-none bg-paper ${view === 'canvas' ? 'touch-none' : ''}`}
+    >
+      {/* Stage */}
+      {view === 'canvas' ? (
+        <StippleCanvas onOpen={handleDotClick} active={modal === null} />
+      ) : (
+        <IndexView onOpen={handleIndexOpen} />
+      )}
 
-      {/* Dot Canvas — Single Page */}
-      <DotCanvas theme={theme} onDotClick={handleDotClick} />
-
-      {/* Minimal HUD */}
-      <div className={`fixed inset-0 pointer-events-none z-50 ${theme === 'day' ? 'text-black' : 'text-white'}`}>
+      {/* HUD */}
+      <div className="fixed inset-0 pointer-events-none z-50 text-ink">
         {/* Top Left - Brand */}
-        <div className="absolute top-6 left-6 md:top-8 md:left-8 pointer-events-auto">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tighter mix-blend-difference">
+        <div className="absolute top-6 left-5 md:top-8 md:left-8 pointer-events-auto">
+          <h1 className="font-mono text-lg md:text-xl font-medium tracking-tight lowercase">
             gong il lee
           </h1>
-          <p className="text-xs font-mono opacity-60 mix-blend-difference">
+          <p className="font-mono text-[10px] tracking-[0.14em] text-muted">
             012
           </p>
         </div>
 
-        {/* Top Right - Info */}
-        <div className="absolute top-6 right-6 md:top-8 md:right-8 text-right pointer-events-auto">
-          <div className="flex flex-col items-end gap-1">
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              {new Date().getFullYear()} ©
-            </p>
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              DRAG TO EXPLORE
-            </p>
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              HOVER TO PREVIEW
-            </p>
-          </div>
-        </div>
-
-        {/* Bottom Right - Theme Toggle */}
-        <div className="absolute bottom-8 right-6 md:bottom-8 md:right-8 pointer-events-auto">
+        {/* Bottom Right - View toggle */}
+        <div className="absolute bottom-12 right-5 md:bottom-14 md:right-8 pointer-events-auto flex items-center gap-2">
           <button
-            onClick={handleThemeToggle}
-            className="w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md bg-white/10 hover:bg-white/20 transition-all border border-white/10"
+            onClick={() => setView('canvas')}
+            className={`${pillBase} ${view === 'canvas' ? pillOn : pillOff}`}
           >
-            {theme === 'day' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>
-            )}
+            dot
+          </button>
+          <button
+            onClick={() => setView('index')}
+            className={`${pillBase} ${view === 'index' ? pillOn : pillOff}`}
+          >
+            grid
           </button>
         </div>
       </div>
 
-      {/* Modal for full image view */}
+      {/* Bottom ticker */}
+      <Marquee />
+
+      {/* Detail modal */}
       <Modal
         item={modalItem}
-        onClose={() => setSelectedImage(null)}
+        position={modal ? { current: modal.pos + 1, total: modal.list.length } : undefined}
+        onClose={() => setModal(null)}
+        onPrev={handlePrev}
+        onNext={handleNext}
       />
     </div>
   );
