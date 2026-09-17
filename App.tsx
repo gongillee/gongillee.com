@@ -1,96 +1,95 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Modal from './components/Modal';
-import DotCanvas from './components/DotCanvas';
+import React, { useEffect, useRef, useState } from 'react';
+import { PROJECTS_DATA } from './projects';
+
+const photos = PROJECTS_DATA.filter(photo => photo.mediaType === 'image' && photo.src);
+
+// Shuffle once per page load; navigation keeps the same order without repeats.
+for (let i = photos.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [photos[i], photos[j]] = [photos[j], photos[i]];
+}
+
+const photoUrl = (index: number) => `/images/${photos[index].src}`;
 
 const App: React.FC = () => {
-  const [theme, setTheme] = useState<'day' | 'night'>('night');
-  const [selectedImage, setSelectedImage] = useState<{ imageUrl: string; mediaType: 'image' | 'video' | 'audio' } | null>(null);
+  const [showPhotos, setShowPhotos] = useState(() => window.location.hash === '#photos');
+  const [index, setIndex] = useState(0);
+  const [failedImage, setFailedImage] = useState<string | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const move = (step: number) => setIndex(current => (current + step + photos.length) % photos.length);
 
-  // Global Content Protection
   useEffect(() => {
-    const preventDefault = (e: Event) => e.preventDefault();
-    document.addEventListener('contextmenu', preventDefault);
-    document.addEventListener('dragstart', preventDefault);
-    return () => {
-      document.removeEventListener('contextmenu', preventDefault);
-      document.removeEventListener('dragstart', preventDefault);
+    const onHashChange = () => setShowPhotos(window.location.hash === '#photos');
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    document.title = showPhotos ? 'photos — gong il lee' : 'gong il lee';
+    if (!showPhotos || !photos.length) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        move(event.key === 'ArrowLeft' ? -1 : 1);
+      }
     };
-  }, []);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showPhotos]);
 
-  const handleDotClick = useCallback((imageUrl: string, mediaType: 'image' | 'video' | 'audio') => {
-    setSelectedImage({ imageUrl, mediaType });
-  }, []);
+  useEffect(() => {
+    if (!showPhotos || photos.length < 2) return;
+    const nextImage = new Image();
+    nextImage.src = photoUrl((index + 1) % photos.length);
+  }, [showPhotos, index]);
 
-  const handleThemeToggle = () => {
-    setTheme(prev => prev === 'day' ? 'night' : 'day');
-  };
-
-  // Build a minimal Project-like item for Modal
-  const modalItem = selectedImage ? {
-    id: 'dot-preview',
-    title: '',
-    client: '',
-    year: '',
-    type: '',
-    imageUrl: selectedImage.imageUrl,
-    description: '',
-    mediaType: selectedImage.mediaType,
-  } : null;
+  if (!showPhotos) {
+    return (
+      <main className="home">
+        <h1>gong il lee</h1>
+        <p>0 1 2</p>
+        <a href="#photos">photos</a>
+      </main>
+    );
+  }
 
   return (
-    <div className={`relative w-full h-screen overflow-hidden touch-none select-none transition-colors duration-500 ${theme === 'day' ? 'bg-white' : 'bg-black'}`}>
-
-      {/* Dot Canvas — Single Page */}
-      <DotCanvas theme={theme} onDotClick={handleDotClick} />
-
-      {/* Minimal HUD */}
-      <div className={`fixed inset-0 pointer-events-none z-50 ${theme === 'day' ? 'text-black' : 'text-white'}`}>
-        {/* Top Left - Brand */}
-        <div className="absolute top-6 left-6 md:top-8 md:left-8 pointer-events-auto">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tighter mix-blend-difference">
-            gong il lee
-          </h1>
-          <p className="text-xs font-mono opacity-60 mix-blend-difference">
-            012
-          </p>
+    <main className="gallery">
+      <header><a href="#">gong il lee</a></header>
+      {photos.length ? <>
+        <div
+          className="photo-stage"
+          onTouchStart={event => {
+            const touch = event.touches[0];
+            touchStart.current = event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY } : null;
+          }}
+          onTouchCancel={() => { touchStart.current = null; }}
+          onTouchEnd={event => {
+            const start = touchStart.current;
+            touchStart.current = null;
+            if (!start) return;
+            const touch = event.changedTouches[0];
+            const dx = touch.clientX - start.x;
+            const dy = touch.clientY - start.y;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) move(dx < 0 ? 1 : -1);
+          }}
+        >
+          {failedImage === photoUrl(index) ? <p role="status">Unable to load this photo. Please try the next one.</p> :
+            <img
+              key={photoUrl(index)}
+              src={photoUrl(index)}
+              alt={`Photograph ${index + 1} by Gong Il Lee${photos[index].type ? `, ${photos[index].type}` : ''}${photos[index].year ? `, ${photos[index].year}` : ''}`}
+              onError={() => setFailedImage(photoUrl(index))}
+            />}
         </div>
-
-        {/* Top Right - Info */}
-        <div className="absolute top-6 right-6 md:top-8 md:right-8 text-right pointer-events-auto">
-          <div className="flex flex-col items-end gap-1">
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              {new Date().getFullYear()} ©
-            </p>
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              DRAG TO EXPLORE
-            </p>
-            <p className="text-xs font-mono opacity-60 mix-blend-difference">
-              HOVER TO PREVIEW
-            </p>
-          </div>
-        </div>
-
-        {/* Bottom Right - Theme Toggle */}
-        <div className="absolute bottom-8 right-6 md:bottom-8 md:right-8 pointer-events-auto">
-          <button
-            onClick={handleThemeToggle}
-            className="w-10 h-10 flex items-center justify-center rounded-full backdrop-blur-md bg-white/10 hover:bg-white/20 transition-all border border-white/10"
-          >
-            {theme === 'day' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" /><path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" /><path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" /></svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Modal for full image view */}
-      <Modal
-        item={modalItem}
-        onClose={() => setSelectedImage(null)}
-      />
-    </div>
+        <nav className="photo-navigation" aria-label="Photo navigation">
+          <button type="button" onClick={() => move(-1)}>previous</button>
+          <span aria-live="polite" aria-atomic="true">{index + 1} / {photos.length}</span>
+          <button type="button" onClick={() => move(1)}>next</button>
+        </nav>
+      </> : <p>No photos yet.</p>}
+    </main>
   );
 };
 
