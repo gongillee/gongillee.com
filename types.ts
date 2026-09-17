@@ -9,10 +9,6 @@ export interface Project {
   mediaType: 'image' | 'video' | 'audio';
   src?: string;
   previewSrc?: string;
-}
-
-export interface GridItem extends Project {
-  row: number;
-  col: number;
-  previewUrl?: string;
+  /** Optional grid thumbnail for video/audio works — filename in public/thumbs/ */
+  thumbSrc?: string;
 }

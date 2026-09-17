@@ -2,100 +2,88 @@
 description: How to add new images, videos, or audio and deploy the changes
 ---
 
-# Adding New Media and Deploying
+# 새 작품 추가하고 배포하기
 
-Follow these steps to add new content to your website.
+## 쉬운 방법 (권장): `npm run add`
 
-## 1. Add Media Files
-Place your new files in the correct folder:
-- **Images:** `assets/images/`
-- **Videos:** `assets/videos/` (Note: If >100MB, ensure Git LFS is tracked)
-- **Audio:** `assets/audio/`
-
-<!-- ## 2. Optimize Media (For Videos)
-If you added new video files, run this command to optimize them for faster streaming:
+터미널에서 한 줄이면 됩니다:
 
 ```bash
-npm run optimize-media
+npm run add
 ```
-*This will automatically process your videos so they play instantly on the web.* -->
 
-## 3. Generate Previews (Optional)
-If you want to use lightweight previews for the Grid/List views:
+질문에 답하면 나머지는 자동입니다:
+
+1. **파일 경로** — Finder에서 파일을 터미널 창으로 드래그하면 경로가 입력됩니다. 영상은 CDN URL을 붙여넣어도 됩니다.
+2. **연도 / 장소** — 입력 (연도는 Enter만 누르면 올해)
+3. 영상·음악이면 **제목**, 필요하면 **grid 썸네일 이미지**도 지정 가능
+
+스크립트가 자동으로:
+- 사진 → `public/images/imageNNNNN.jpg`로 번호 매겨 저장 (HEIC/PNG도 JPEG로 변환) + 480px 썸네일 생성
+- 영상 → `assets/videos/`, 음악 → `assets/audio/`로 복사
+- `projects.json`에 메타데이터 추가
+
+확인하고 올리기:
 
 ```bash
-./preview_media.sh
-```
-*This creates 5-second, muted, low-quality clips (e.g., `video_preview.mp4`) for smoother browsing.*
-
-## 4. Update Data
-Open `projects.ts` and add a new entry to the `PROJECTS_DATA` array.
-
-**Example:**
-```typescript
-{
-  title: "New Project Title",
-  client: "Client Name",
-  year: "2024",
-  type: "Type",
-  description: "Description...",
-  mediaType: 'image', // or 'video', 'audio'
-  src: 'your-new-file.jpg' // Filename only
-},
+npm run dev     # localhost:3000 에서 확인
+git add -A && git commit -m "add: new work" && git push
 ```
 
-## 3. Push to GitHub
-Open your terminal and run:
+push하면 GitHub Actions가 자동 빌드·배포합니다 (2~3분 뒤 gongillee.com 반영).
 
-```bash
-# 1. Add all changes
-git add .
+## grid 썸네일 (영상·음악)
 
-# 2. Commit with a message
-git commit -m "feat: add new project images"
-
-# 3. Push to GitHub
-git push origin main
-```
-
-## 4. Automatic Deployment
-Once you push, **GitHub Actions** will automatically:
-1.  Build your website.
-2.  Deploy it to the `gh-pages` branch.
-3.  Update the live site at `https://gongillee.com/`.
-
-**Wait about 2-3 minutes** for the changes to appear.
-
-## 5. Branches (FAQ)
-- **`main`**: This is your workspace. **Always work and push to this branch.**
-- **`gh-pages`**: This is a background branch used by the system to host the site. **You can completely ignore it.**
+- **영상**: 아무것도 안 해도 프리뷰 클립의 첫 프레임이 grid에 자동 표시됩니다. 다른 장면을 쓰고 싶으면 `npm run add`에서 썸네일 이미지를 지정하거나, `projects.json` 항목에 `"thumbSrc": "파일명.jpg"`를 넣고 그 이미지를 `public/thumbs/`에 두세요.
+- **음악**: 썸네일이 없으면 grid에 파형 아이콘이 표시됩니다. 이미지를 쓰려면 위와 같이 `thumbSrc`를 지정하세요.
 
 ---
 
-# Appendix: Video Compression Guide
+## 수동 방법 (참고)
 
-For mobile optimization and faster loading, it is recommended to compress videos to under **20MB**.
+1. 파일 넣기: 사진 `public/images/` · 영상 `assets/videos/` · 음악 `assets/audio/`
+2. 사진이면 썸네일 생성: `npm run thumbs` (없는 것만 새로 생성, 재실행 안전)
+3. `projects.json`에 항목 추가:
 
-### Option 1: Recommended Web Optimization (Best Quality/Size Balance)
-This command resizes to 720p, optimizes compression, and enables instant web streaming.
+```json
+{
+  "title": "", "client": "", "year": "2024", "type": "seoul, south korea",
+  "description": "", "mediaType": "image", "src": "image00118.jpg"
+}
+```
+
+영상은 `"previewSrc"`(가벼운 프리뷰 클립), 영상·음악은 `"thumbSrc"`(grid 썸네일)를 선택적으로 추가할 수 있습니다.
+
+4. 커밋 & 푸시 → 자동 배포
+
+## 브랜치 (FAQ)
+
+- **`main`**: 작업 공간. 항상 여기에 push.
+- **`gh-pages`**: 배포용 자동 생성 브랜치. 신경 쓰지 않아도 됩니다.
+
+---
+
+# 부록: 영상 압축 가이드
+
+모바일 로딩을 위해 **20MB 이하** 권장. (ffmpeg 필요: `brew install ffmpeg`)
+
+### 웹 최적화 (권장)
 
 ```bash
 ffmpeg -i input.mp4 -vf scale=1280:-2 -c:v libx264 -crf 23 -preset slow -c:a copy -movflags +faststart output.mp4
 ```
-- `-vf scale=1280:-2`: Resizes width to 1280px, auto-calculates height.
-- `-crf 23`: Controls quality (lower is better, 18-28 is standard).
-- `-movflags +faststart`: **Crucial for web** (allows video to start playing before fully downloading).
 
-### Option 2: High Compression (For Mobile/Backgrounds)
-Use this if you need the file size to be extremely small.
+- `-movflags +faststart`: 다 받기 전에 재생 시작 (웹 필수)
+- `-crf 23`: 품질 (18~28, 낮을수록 고품질)
+
+### 고압축 (모바일/배경용)
 
 ```bash
 ffmpeg -i input.mp4 -vf scale=1280:-2 -c:v libx264 -crf 28 -preset slow -c:a copy -movflags +faststart output.mp4
 ```
 
-### Option 3: Quick Resize (Your Method)
-Simple resize, fast processing.
+### 프리뷰 클립 만들기 (grid 자동 썸네일용)
 
 ```bash
-ffmpeg -i input.mp4 -s 1280x720 -acodec copy -y output.mp4
+ffmpeg -i input.mp4 -vf scale=640:-2 -t 5 -an -c:v libx264 -crf 28 -movflags +faststart name_preview.mp4
 ```
